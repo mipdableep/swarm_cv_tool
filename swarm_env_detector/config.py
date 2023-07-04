@@ -1,7 +1,6 @@
 import cv2
 from swarm_env_detector.classes import *
 
-navigation_markers = list[navigation_marker]
 #                        id  size  x    y    z   yaw
 m52  = navigation_marker(52, 166, 500, 0  , 60 , 180)
 m53  = navigation_marker(53, 166, 850, 0  , 77 , 180)
@@ -26,5 +25,5 @@ DRONES_DICT = {800:80, 801:80, 802:80,}
 
 
 A_DICT = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
-A_PARAMS = cv2.aruco.DetectorParameters()
+A_PARAMS = cv2.aruco.DetectorParameters_create()
 

@@ -89,7 +89,17 @@ class navigation_marker():
         self.A_T : T_vec(abs_x,abs_y,abs_z)
         self.YAW : abs_yaw
         
-    def get_abs_location(self, T, yaw) -> tuple[T_vec, float]:
+    def get_abs_location(self, T, yaw):
+        """
+        given a vec from this marker returns abs pos
+
+        Args:
+            T (T_vec): 3d T vector
+            yaw (float): yaw
+
+        Returns:
+            tuple(T_vec, float): t vec and yaw from origin
+        """
         T = T_vec(0,0,0)
         A_T = T_vec(0,0,0)
         if self.YAW == 0:
