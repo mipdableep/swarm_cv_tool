@@ -21,9 +21,10 @@ def process_frame(frame):
             # if id in DRONES_DICT:
             #     drone_markers.append((id, markerCorners[index]))
         
-        get_location_from_markers(navigation_markers)
+        t, yaw = get_location_from_markers(navigation_markers)
+        print(f"abs: {t}, yaw:{yaw}")
 
-def get_location_from_markers(location_markers):
+def get_location_from_markers(location_markers) -> tuple[T_vec, float]:
     avrg_T = []
     avrg_yaw = 0
     for i in location_markers:
@@ -37,7 +38,8 @@ def get_location_from_markers(location_markers):
     return T_vec.avrg(avrg_T), (avrg_yaw/len(location_markers))%360
 
 def extract_6_dof_from_vecs(rvec, tvec) -> tuple[R_vec, T_vec]:
-    """extract dof from r and t
+    """
+    extract dof from r and t
 
     Args:
         rvec (list): rotation vector 
@@ -67,12 +69,12 @@ def extract_6_dof_from_vecs(rvec, tvec) -> tuple[R_vec, T_vec]:
     return R, T
 
 
-# test utils with tello
-import djitellopy
-import cv2
-import VCS
 
 if __name__ == "__main__":
+    # test utils with tello
+    import djitellopy
+    import cv2
+    import VCS
     
     # consts - change
     ip = "192.168.0.20"
@@ -93,4 +95,5 @@ if __name__ == "__main__":
         ret, frame = cap.read()
         if not ret:
             continue
+        process_frame(frame)
 
