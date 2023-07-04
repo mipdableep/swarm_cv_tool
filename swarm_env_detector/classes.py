@@ -34,16 +34,16 @@ class R_vec:
             R_vec: vec1 - vec2
         """
         return R_vec(
-            vec1.pitch - vec2.pitch,
-            vec1.roll - vec2.roll,
-            vec1.yaw - vec2.yaw,
+            (vec1.pitch - vec2.pitch)%360,
+            (vec1.roll - vec2.roll)%360,
+            (vec1.yaw - vec2.yaw)%360,
         )
 
-@dataclass
+@dataclass()
 class T_vec:
-    lr: float = 0
-    fb: float = 0
-    ud: float = 0
+    x: float = 0
+    y: float = 0
+    z: float = 0
 
     @staticmethod
     def avrg(vec_list):
@@ -58,9 +58,9 @@ class T_vec:
         dev = len(vec_list)
         x, y, z = 0,0,0
         for i in vec_list:
-            x += i.lr
-            y += i.fb
-            z += i.ud
+            x += i.x
+            y += i.y
+            z += i.z
         return T_vec(x/dev, y/dev, z/dev)
     
     @staticmethod
@@ -75,15 +75,47 @@ class T_vec:
             T_vec: vec1 - vec2
         """
         return T_vec(
-            vec1.lr - vec2.lr,
-            vec1.fb - vec2.fb,
-            vec1.ud - vec2.ud,
+            vec1.x - vec2.x,
+            vec1.y - vec2.y,
+            vec1.z - vec2.z,
         )
 
 class navigation_marker():
-    def __init__(self, id, size, abs_x = 0, abs_y = 0, abs_z = 0, abs_pitch = 0, abs_roll = 0, abs_yaw = 0) -> None:
+    
+    def __init__(self, id, size, abs_x = 0.0, abs_y = 0.0, abs_z = 0.0, abs_yaw = 0.0) -> None:
         self.ID = id
         self.SIZE = size
         
-        self.A_T = T_vec(abs_x,abs_y,abs_z)
-        self.A_R = R_vec(abs_pitch, abs_roll, abs_yaw)
+        self.A_T : T_vec(abs_x,abs_y,abs_z)
+        self.YAW : abs_yaw
+        
+    def get_abs_location(self, T, yaw) -> tuple[T_vec, float]:
+        T = T_vec(0,0,0)
+        A_T = T_vec(0,0,0)
+        if self.YAW == 0:
+            return T_vec(
+                self.A_T.x + T.x,
+                self.A_T.y - T.y, # you get positive dist from aruco y
+                self.A_T.z + T.z
+            ), (self.YAW + yaw)
+        
+        if self.YAW == 90:
+            return T_vec(
+                A_T.x + T.y,
+                A_T.y + T.x,
+                A_T.z + T.z
+            ), (self.YAW + yaw)
+            
+        if self.YAW == 180:
+            return T_vec(
+                A_T.x - T.x,
+                A_T.y + T.y,
+                A_T.z + T.z
+            ), (self.YAW + yaw)
+
+        if self.YAW == 270:
+            return T_vec(
+                A_T.x - T.y,
+                A_T.y - T.x,
+                A_T.z + T.z
+            ), (self.YAW + yaw)
