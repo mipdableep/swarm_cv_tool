@@ -25,5 +25,5 @@ DRONES_DICT = {800:80, 801:80, 802:80,}
 
 
 A_DICT = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
-A_PARAMS = cv2.aruco.DetectorParameters_create()
+A_PARAMS = cv2.aruco.DetectorParameters()
 

@@ -49,7 +49,7 @@ class swarm_cv_tool(Node):
         params.append(self.declare_parameter
         (
             name="swarm_cv_tool.calib_path",
-            value="/ws_ros/ws/src/swarm_env_detector/drone_calib/drone20.yaml",
+            value="/ros_ws/src/swarm_cv_tool/drone_calib/drone20.yaml",
             descriptor=ParameterDescriptor(description="path to calibration yaml file.")
         ))
         # param publishing hrz
@@ -65,16 +65,16 @@ class swarm_cv_tool(Node):
         fs = cv2.FileStorage(self._calib_path, cv2.FILE_STORAGE_READ)
         CAMERA_MAT = fs.getNode("camera_matrix").mat()
         CAMERA_DIST = fs.getNode("distortion_coefficients").mat()
-        self.get_logger().info(f"cam mat:{self._camera_mat}")
-        self.get_logger().info(f"cam dist:{self._camera_dist}")
+        self.get_logger().info(f"cam mat:{CAMERA_MAT}")
+        self.get_logger().info(f"cam dist:{CAMERA_DIST}")
         
         # publishers
         self._pub_location = self.create_publisher(MicroLocation, "location", 10)
         self._pub_peer_location = self.create_publisher(Drones, "peer_detection", 10)
         
-        self._timer = self.create_timer(1/self._publish_hrz, self.write_and_publish())
+        self._timer = self.create_timer(1/self._publish_hrz, self.write_and_publish)
         
-        self.runloop()
+        # self.runloop()
 
   
     def update_parameters(self, event):
@@ -161,8 +161,10 @@ class swarm_cv_tool(Node):
             
             process_frame(frame)
 
-def main():
-    rclpy.init()
+def main(args = None):
+    # ros2 initialization
+    rclpy.init(args=args)
+
     node = swarm_cv_tool()
     rclpy.spin(node)
 
