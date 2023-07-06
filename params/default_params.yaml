@@ -1,8 +1,7 @@
 /swarm_cv_tool:
   ros__parameters:
     swarm_cv_tool:
-      calib_path: /ws_ros/ws/src/swarm_env_detector/drone_calib/drone20.yaml
-      publish_hrz: 10
+      calib_path: /ros_ws/src/swarm_cv_tool/drone_calib/drone20.yaml
       video_ip: 0.0.0.0
       video_port: 11111
     use_sim_time: false

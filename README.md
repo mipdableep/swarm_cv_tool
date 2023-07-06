@@ -22,7 +22,6 @@ ros2 run swarm_env_detector location_peer_detection --params-file default_params
 | swarm_cv_tool.video_ip	| ip of the tello streaming video	| 0.0.0.0 | - |
 | swarm_cv_tool.video_port	| video port for the tello stream	| 11111	| -	|
 | swarm_cv_tool.calib_path	| yaml calibration file path    | /ros_ws/src/swarm_cv_tool/drone_calib/drone20.yaml	| -	|
-| swarm_cv_tool.publish_hrz	| times location and peers detected are published per second	| 10	| Hrtz	|
 | use_sim_time	| Should the time also be simulated	| false	|	See [ROS Clock](http://wiki.ros.org/Clock) |
 
 ## Dependencies
