@@ -28,4 +28,7 @@ ros2 run swarm_env_detector location_peer_detection --params-file default_params
 
 * [interfaces_alate](https://github.com/halehaka/interfaces_alate)
 * [interfaces_swarm](https://github.com/halehaka/interfaces_swarm)
+* [scipy](https://scipy.org/)
 * OpenCV-contrib: Aruco module
+
+to install the dependencies, run `./dep_install.bash`
