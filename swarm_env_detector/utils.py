@@ -5,27 +5,9 @@ from scipy.spatial.transform import Rotation
 from swarm_env_detector.config import *
 from swarm_env_detector.classes import *
 
-def process_frame(frame):
-        markerCorners, markerIds, _ = cv2.aruco.detectMarkers(frame, A_DICT, parameters=A_PARAMS)
-        cv2.aruco.drawDetectedMarkers(frame, markerCorners, markerIds)
-        cv2.imshow("frame", frame)
-        if markerIds is None:
-            return
-        navigation_markers, drone_markers = [], []
-        
-        for index, id in enumerate(markerIds):
-            id = id[0]
-            
-            if id in NAVIGATION_DICT:
-                navigation_markers.append((id, markerCorners[index]))
-            if id in DRONES_DICT:
-                drone_markers.append((id, markerCorners[index]))
-        
-        abs_t, yaw = get_abs_location(navigation_markers)
-        drones_loc = get_drones_location(drone_markers)
 
 
-def get_abs_location(location_markers):
+def get_abs_location(location_markers, cam_mat, cam_dist):
     """
     get abs average location from mapped markers
 
@@ -39,15 +21,16 @@ def get_abs_location(location_markers):
     avrg_yaw = 0
     for i in location_markers:
         id, corners = i
-        rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, NAVIGATION_DICT[id].SIZE, CAMERA_MAT, CAMERA_DIST)
+        rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, NAVIGATION_DICT[id].SIZE, cam_mat, cam_dist)
         R, T = extract_6_dof(rvecs[0][0], tvecs[0][0])
         a_T, a_yaw = NAVIGATION_DICT[id].get_abs_location(T, R.yaw)
         avrg_T.append(a_T)
         avrg_yaw += a_yaw
     
-    return T_vec.avrg(avrg_T), (avrg_yaw/len(location_markers))%360
+    return T_vec.avrg_list(avrg_T), (avrg_yaw/len(location_markers))%360
 
-def get_drones_location(drones_markers):
+# TODO: need to apply cam_dist and cam_mat
+def get_drones_location(drones_markers, cam_mat, cam_dist):
     """
     gets all the locations of drones. each drone only once
 
@@ -65,7 +48,7 @@ def get_drones_location(drones_markers):
             continue
         seen_ids.append(id)
         
-        rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, NAVIGATION_DICT[id].SIZE, CAMERA_MAT, CAMERA_DIST)
+        rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, NAVIGATION_DICT[id].SIZE, cam_mat, cam_dist)
         R, T = extract_6_dof(rvecs[0][0], tvecs[0][0], origin_marker=False)
         drone_locations.append(T)
     return T
@@ -110,6 +93,24 @@ def extract_6_dof(rvec, tvec, origin_marker = True, round_num = None):
     
     return R, T
 
+def process_frame_for_test(frame):
+        markerCorners, markerIds, _ = cv2.aruco.detectMarkers(frame, A_DICT, parameters=A_PARAMS)
+        cv2.aruco.drawDetectedMarkers(frame, markerCorners, markerIds)
+        cv2.imshow("frame", frame)
+        if markerIds is None:
+            return
+        navigation_markers, drone_markers = [], []
+        
+        for index, id in enumerate(markerIds):
+            id = id[0]
+            
+            if id in NAVIGATION_DICT:
+                navigation_markers.append((id, markerCorners[index]))
+            if id in DRONES_DICT:
+                drone_markers.append((id, markerCorners[index]))
+        
+        abs_t, yaw = get_abs_location(navigation_markers)
+        drones_loc = get_drones_location(drone_markers)
 
 def test():
     fs = cv2.FileStorage("/home/fares/rbd/tools/calib/webcam.yaml", cv2.FILE_STORAGE_READ)

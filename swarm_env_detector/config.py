@@ -18,7 +18,6 @@ m777 = navigation_marker(777,148, 454, 521, 115, 0  )
 
 navigation_markers = [m52,m53,m54,m55,m56,m57,m58,m59,m60,m61,m62,m62,m777]
 
-CAMERA_MAT, CAMERA_DIST = None, None
 
 NAVIGATION_DICT = {i.ID:i for i in navigation_markers}
 DRONES_DICT = {800:80, 801:80, 802:80,}

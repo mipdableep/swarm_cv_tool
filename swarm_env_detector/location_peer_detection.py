@@ -20,9 +20,11 @@ class swarm_cv_tool(Node):
         self._video_port = None
         self._calib_path = None
         self._video_cap = None
+        self._cam_mat = None
+        self._cam_dist = None
         
         self.abs_T, self.abs_yaw = None, None
-        self.drones_location = None
+        self.peers_location = None
 
         # set parameters from ros args
         params = []
@@ -51,10 +53,10 @@ class swarm_cv_tool(Node):
         self.update_parameters(params)
         print (f"calib_path:{self._calib_path}, type:{type(self._calib_path)}")
         fs = cv2.FileStorage(str(self._calib_path), cv2.FILE_STORAGE_READ)
-        CAMERA_MAT = fs.getNode("camera_matrix").mat()
-        CAMERA_DIST = fs.getNode("distortion_coefficients").mat()
-        self.get_logger().info(f"cam mat:{CAMERA_MAT}")
-        self.get_logger().info(f"cam dist:{CAMERA_DIST}")
+        self._cam_mat = fs.getNode("camera_matrix").mat()
+        self._cam_dist = fs.getNode("distortion_coefficients").mat()
+        self.get_logger().info(f"cam mat:{self._cam_mat}")
+        self.get_logger().info(f"cam dist:{self._cam_dist}")
         
         # publishers
         self._pub_location = self.create_publisher(Microlocation, "location", 10)
@@ -79,7 +81,6 @@ class swarm_cv_tool(Node):
     def process_frame(self, frame):
         markerCorners, markerIds, _ = cv2.aruco.detectMarkers(frame, A_DICT, parameters=A_PARAMS)
         cv2.aruco.drawDetectedMarkers(frame, markerCorners, markerIds)
-        cv2.imshow("frame", frame)
         if markerIds is None:
             return
         navigation_markers, drone_markers = [], []
@@ -93,45 +94,51 @@ class swarm_cv_tool(Node):
                 drone_markers.append((id, markerCorners[index]))
         
         if navigation_markers != []:
-            self.abs_T, self.abs_yaw = get_abs_location(navigation_markers)
+            self.abs_T, self.abs_yaw = get_abs_location(navigation_markers, self._cam_mat, self._cam_dist)
 
         if drone_markers != []:
-            self.drones_location = get_drones_location(drone_markers)
+            self.peers_location = get_drones_location(drone_markers, self._cam_mat, self._cam_dist)
         
-        self.write_and_publish()
-        rclpy.spin_once(self)
+        self.pub_location()
+        self.pub_peers()
+        rclpy.spin_once(self, timeout_sec=0.01)
 
-    def write_and_publish(self):
+    def pub_location(self):
         
-        loc_msg = Microlocation()
-        loc_msg.x = self.abs_T.x
-        loc_msg.y = self.abs_T.y
-        loc_msg.z = self.abs_T.z
-        loc_msg.yaw = self.abs_yaw
-        
-        peers_msg = Peers()
-        for i in self.drones_location:
-            peers_msg.peers.append(Point(x = i.x, y = i.y, z = i.z))
-        
-        self._pub_location.publish(loc_msg)
-        self._pub_peer_location.publish(peers_msg)
+        if self.abs_yaw != None:
+            loc_msg = Microlocation()
+            loc_msg.x = self.abs_T.x
+            loc_msg.y = self.abs_T.y
+            loc_msg.z = self.abs_T.z
+            loc_msg.yaw = self.abs_yaw
+            self._pub_location.publish(loc_msg)
+            print(f"loc_msg:{loc_msg}")
+
+    def pub_peers(self):
+        if self.peers_location != None:
+            peers_msg = Peers()
+            for i in self.peers_location:
+                peers_msg.peers.append(Point(x = i.x, y = i.y, z = i.z))
+            
+            self._pub_peer_location.publish(peers_msg)
+            print(f"\npeers_msg:{peers_msg}\n")
+
 
     def runloop(self):
         self._video_cap = VideoCapture(f"udp://{self._video_ip}:{self._video_port}")
         
-        while cv2.waitKey(50) & 0xFF != ord('q'):
+        while self._video_cap._live:
             ret, frame = self._video_cap.read()
             if not ret:
                 continue
             
-            process_frame(frame)
+            self.process_frame(frame)
 
 def main(args = None):
     # ros2 initialization
     rclpy.init(args=args)
 
     node_swarm_cv_tool = swarm_cv_tool()
-    print("\n\naaaaaaaaaaaa\n\n")
     node_swarm_cv_tool.runloop()
     
     node_swarm_cv_tool.destroy_node()

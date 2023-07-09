@@ -22,35 +22,30 @@ class R_vec:
             r += i.roll
             y += i.yaw
         return R_vec(p/dev, r/dev, y/dev)
-    
-    def subtract(vec1, vec2):
-        """vec1 - vec2
 
-        Args:
-            vec1 (R_vec): subtructee
-            vec2 (R_vec): subtructor
 
-        Returns:
-            R_vec: vec1 - vec2
-        """
-        return R_vec(
-            (vec1.pitch - vec2.pitch)%360,
-            (vec1.roll - vec2.roll)%360,
-            (vec1.yaw - vec2.yaw)%360,
-        )
 
 @dataclass()
 class T_vec:
+    """
+    a simple dataclass to handle t vecs
+    """
     x: float = 0
     y: float = 0
     z: float = 0
 
+    def round_self(self, round_num):
+        self.x = round(self.x, round_num)
+        self.y = round(self.y, round_num)
+        self.z = round(self.z, round_num)
+
     @staticmethod
-    def avrg(vec_list):
-        """avrg a list of T_vecs
+    def avrg_list(vec_list):
+        """
+        avrg a list of T_vecs
 
         Args:
-            vec_list (list[tvecs]): list of tvecs
+            vec_list (list[T_vecs]): list of tvecs
 
         Returns:
             T_vec: avraged Tvec
@@ -62,23 +57,6 @@ class T_vec:
             y += i.y
             z += i.z
         return T_vec(x/dev, y/dev, z/dev)
-    
-    @staticmethod
-    def subtract(vec1, vec2):
-        """vec1 - vec2
-
-        Args:
-            vec1 (T_vec): subtructee
-            vec2 (T_vec): subtructor
-
-        Returns:
-            T_vec: vec1 - vec2
-        """
-        return T_vec(
-            vec1.x - vec2.x,
-            vec1.y - vec2.y,
-            vec1.z - vec2.z,
-        )
 
 class navigation_marker():
     
@@ -86,8 +64,8 @@ class navigation_marker():
         self.ID = id
         self.SIZE = size
         
-        self.A_T : T_vec(abs_x,abs_y,abs_z)
-        self.YAW : abs_yaw
+        self.A_T = T_vec(abs_x,abs_y,abs_z)
+        self.YAW = abs_yaw
         
     def get_abs_location(self, T, yaw):
         """
@@ -100,8 +78,6 @@ class navigation_marker():
         Returns:
             tuple(T_vec, float): t vec and yaw from origin
         """
-        T = T_vec(0,0,0)
-        A_T = T_vec(0,0,0)
         if self.YAW == 0:
             return T_vec(
                 self.A_T.x + T.x,
@@ -111,21 +87,21 @@ class navigation_marker():
         
         if self.YAW == 90:
             return T_vec(
-                A_T.x + T.y,
-                A_T.y + T.x,
-                A_T.z + T.z
+                self.A_T.x + T.y,
+                self.A_T.y + T.x,
+                self.A_T.z + T.z
             ), (self.YAW + yaw)
             
         if self.YAW == 180:
             return T_vec(
-                A_T.x - T.x,
-                A_T.y + T.y,
-                A_T.z + T.z
+                self.A_T.x - T.x,
+                self.A_T.y + T.y,
+                self.A_T.z + T.z
             ), (self.YAW + yaw)
 
         if self.YAW == 270:
             return T_vec(
-                A_T.x - T.y,
-                A_T.y - T.x,
-                A_T.z + T.z
+                self.A_T.x - T.y,
+                self.A_T.y - T.x,
+                self.A_T.z + T.z
             ), (self.YAW + yaw)
