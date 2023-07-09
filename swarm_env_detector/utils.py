@@ -48,10 +48,10 @@ def get_drones_location(drones_markers, cam_mat, cam_dist):
             continue
         seen_ids.append(id)
         
-        rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, NAVIGATION_DICT[id].SIZE, cam_mat, cam_dist)
+        rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(corners, DRONES_DICT[id], cam_mat, cam_dist)
         R, T = extract_6_dof(rvecs[0][0], tvecs[0][0], origin_marker=False)
         drone_locations.append(T)
-    return T
+    return drone_locations
 
 
 def extract_6_dof(rvec, tvec, origin_marker = True, round_num = None):
